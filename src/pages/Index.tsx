@@ -15,6 +15,7 @@ const AppContent = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [view, setView] = useState<View>('home');
   const [videoHashtag, setVideoHashtag] = useState<string | undefined>();
+  const [videoPostId, setVideoPostId] = useState<string | undefined>();
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   const handleSplashComplete = useCallback(() => setShowSplash(false), []);
