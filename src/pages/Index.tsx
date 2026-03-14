@@ -40,9 +40,9 @@ const AppContent = () => {
   return (
     <div className="max-w-[430px] mx-auto min-h-screen relative">
       {view === 'home' && <HomePage onHashtagClick={handleHashtagClick} onToggleTheme={toggleTheme} />}
-      {view === 'video' && <VideoPage hashtag={videoHashtag} />}
+      {view === 'video' && <VideoPage hashtag={videoHashtag} postId={videoPostId} />}
       {view === 'add' && <AddPostPage onPosted={() => setView('home')} />}
-      {view === 'account' && <AccountPage />}
+      {view === 'account' && <AccountPage onViewPost={(id) => { setVideoPostId(id); setVideoHashtag(undefined); setView('video'); }} />}
       <FooterNav active={view} onNavigate={(v) => { setView(v); if (v !== 'video') setVideoHashtag(undefined); }} />
     </div>
   );
