@@ -184,7 +184,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const followUser = (username: string) => {
-    if (!currentUser) return;
+    if (!currentUser || currentUser.following.includes(username)) return;
     setDB(prev => ({
       ...prev,
       users: prev.users.map(u => {
@@ -193,6 +193,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return u;
       }),
     }));
+  };
+
+  const isFollowing = (username: string) => {
+    return currentUser?.following.includes(username) || false;
+  };
+
+  const redeemCoupon = (type: string, cost: number, amount: number): boolean => {
+    if (!currentUser || currentUser.points < cost) return false;
+    setDB(prev => ({
+      ...prev,
+      users: prev.users.map(u => {
+        if (u.username !== prev.currentUser) return u;
+        const coupons = [...(u.coupons || [])];
+        const existing = coupons.find(c => c.type === type);
+        if (existing) existing.count += 1;
+        else coupons.push({ type, amount, count: 1 });
+        return { ...u, points: u.points - cost, coupons };
+      }),
+    }));
+    return true;
   };
 
   const addPoints = (amount: number) => {
