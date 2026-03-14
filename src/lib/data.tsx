@@ -78,10 +78,10 @@ const samplePosts: Post[] = [
 ];
 
 const sampleUsers: User[] = [
-  { name: 'EDO Official', username: 'edoofficial', password: '', bio: 'Official EDO Pack account', profilePic: '', posts: ['p1', 'p2', 'p6'], points: 0, followers: 15420, following: [] },
-  { name: 'Snack Reviewer', username: 'snackreviewer', password: '', bio: 'Reviewing snacks daily', profilePic: '', posts: ['p3'], points: 0, followers: 892, following: [] },
-  { name: 'Office Snacker', username: 'officesnacker', password: '', bio: '', profilePic: '', posts: ['p4'], points: 0, followers: 234, following: [] },
-  { name: 'Food Vlogger', username: 'foodvlogger', password: '', bio: '', profilePic: '', posts: ['p5'], points: 0, followers: 5678, following: [] },
+  { name: 'EDO Official', username: 'edoofficial', password: '', bio: 'Official EDO Pack account', profilePic: '', posts: ['p1', 'p2', 'p6'], points: 0, followers: 15420, following: [], coupons: [] },
+  { name: 'Snack Reviewer', username: 'snackreviewer', password: '', bio: 'Reviewing snacks daily', profilePic: '', posts: ['p3'], points: 0, followers: 892, following: [], coupons: [] },
+  { name: 'Office Snacker', username: 'officesnacker', password: '', bio: '', profilePic: '', posts: ['p4'], points: 0, followers: 234, following: [], coupons: [] },
+  { name: 'Food Vlogger', username: 'foodvlogger', password: '', bio: '', profilePic: '', posts: ['p5'], points: 0, followers: 5678, following: [], coupons: [] },
 ];
 
 const DataContext = createContext<DataContextType | null>(null);
