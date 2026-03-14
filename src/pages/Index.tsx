@@ -15,6 +15,7 @@ const AppContent = () => {
   const [showSplash, setShowSplash] = useState(true);
   const [view, setView] = useState<View>('home');
   const [videoHashtag, setVideoHashtag] = useState<string | undefined>();
+  const [videoPostId, setVideoPostId] = useState<string | undefined>();
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   const handleSplashComplete = useCallback(() => setShowSplash(false), []);
@@ -39,10 +40,10 @@ const AppContent = () => {
   return (
     <div className="max-w-[430px] mx-auto min-h-screen relative">
       {view === 'home' && <HomePage onHashtagClick={handleHashtagClick} onToggleTheme={toggleTheme} />}
-      {view === 'video' && <VideoPage hashtag={videoHashtag} />}
+      {view === 'video' && <VideoPage hashtag={videoHashtag} postId={videoPostId} />}
       {view === 'add' && <AddPostPage onPosted={() => setView('home')} />}
-      {view === 'account' && <AccountPage />}
-      <FooterNav active={view} onNavigate={(v) => { setView(v); if (v !== 'video') setVideoHashtag(undefined); }} />
+      {view === 'account' && <AccountPage onViewPost={(id) => { setVideoPostId(id); setVideoHashtag(undefined); setView('video'); }} />}
+      <FooterNav active={view} onNavigate={(v) => { setView(v); if (v !== 'video') { setVideoHashtag(undefined); setVideoPostId(undefined); } }} />
     </div>
   );
 };

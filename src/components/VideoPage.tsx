@@ -1,23 +1,28 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Heart, MessageCircle, Share2, Play } from 'lucide-react';
 import { useData, Post } from '@/lib/data';
 
 interface VideoPageProps {
   hashtag?: string;
+  postId?: string;
 }
 
-const VideoPage = ({ hashtag }: VideoPageProps) => {
-  const { getAllPosts, likePost, sharePost, commentOnPost, followUser, currentUser } = useData();
-  const [currentIndex, setCurrentIndex] = useState(0);
+const VideoPage = ({ hashtag, postId }: VideoPageProps) => {
+  const { getAllPosts, likePost, sharePost, commentOnPost, followUser, isFollowing, currentUser } = useData();
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [toast, setToast] = useState('');
+  const touchStartY = useRef<number | null>(null);
 
-  const posts = hashtag
-    ? getAllPosts().filter(p => p.hashtags.some(h => h.toLowerCase() === hashtag.toLowerCase()))
-    : getAllPosts();
+  const allPosts = getAllPosts();
+  const filteredPosts = hashtag
+    ? allPosts.filter(p => p.hashtags.some(h => h.toLowerCase() === hashtag.toLowerCase()))
+    : allPosts;
 
-  const post: Post | undefined = posts[currentIndex];
+  const initialIndex = postId ? Math.max(0, filteredPosts.findIndex(p => p.id === postId)) : 0;
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+
+  const post: Post | undefined = filteredPosts[currentIndex];
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -44,14 +49,26 @@ const VideoPage = ({ hashtag }: VideoPageProps) => {
   };
 
   const handleFollow = () => {
-    if (!post) return;
+    if (!post || isFollowing(post.authorUsername)) return;
     followUser(post.authorUsername);
     showToast('+5 Points!');
   };
 
-  const handleSwipe = () => {
-    if (currentIndex < posts.length - 1) setCurrentIndex(prev => prev + 1);
-    else setCurrentIndex(0);
+  const goNext = () => {
+    if (filteredPosts.length <= 1) return;
+    setCurrentIndex(prev => (prev + 1) % filteredPosts.length);
+    setShowComments(false);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current === null) return;
+    const diff = touchStartY.current - e.changedTouches[0].clientY;
+    if (Math.abs(diff) > 50) goNext();
+    touchStartY.current = null;
   };
 
   if (!post) {
@@ -62,8 +79,15 @@ const VideoPage = ({ hashtag }: VideoPageProps) => {
     );
   }
 
+  const alreadyFollowing = isFollowing(post.authorUsername);
+
   return (
-    <div className="relative h-[calc(100vh-70px)] bg-black overflow-hidden" onClick={handleSwipe}>
+    <div
+      className="relative h-[calc(100vh-70px)] bg-black overflow-hidden select-none"
+      onClick={goNext}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Toast */}
       {toast && (
         <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[2000] px-4 py-1.5 bg-yellow-400 text-black font-bold text-sm"
@@ -103,8 +127,16 @@ const VideoPage = ({ hashtag }: VideoPageProps) => {
           <div className="w-10 h-10 rounded-full bg-white/20" />
           <span className="font-bold text-white">@{post.authorUsername}</span>
           {post.authorUsername !== currentUser?.username && (
-            <button onClick={handleFollow} className="border border-white/50 text-white text-xs px-2 py-0.5 hover:bg-white/10 edo-transition">
-              Follow
+            <button
+              onClick={handleFollow}
+              disabled={alreadyFollowing}
+              className={`border text-xs px-2 py-0.5 edo-transition ${
+                alreadyFollowing
+                  ? 'border-white/20 text-white/40 cursor-default'
+                  : 'border-white/50 text-white hover:bg-white/10'
+              }`}
+            >
+              {alreadyFollowing ? 'Following' : 'Follow'}
             </button>
           )}
         </div>

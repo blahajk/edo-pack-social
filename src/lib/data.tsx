@@ -31,6 +31,7 @@ export interface User {
   points: number;
   followers: number;
   following: string[];
+  coupons: { type: string; amount: number; count: number }[];
 }
 
 interface EdoDB {
@@ -51,7 +52,9 @@ interface DataContextType {
   commentOnPost: (postId: string, text: string) => void;
   likeComment: (postId: string, commentId: string) => void;
   followUser: (username: string) => void;
+  isFollowing: (username: string) => boolean;
   addPoints: (amount: number) => void;
+  redeemCoupon: (type: string, cost: number, amount: number) => boolean;
   updateProfile: (updates: Partial<Pick<User, 'name' | 'username' | 'bio' | 'profilePic'>>) => void;
   getPost: (postId: string) => Post | undefined;
   getUserPosts: (username: string) => Post[];
@@ -75,10 +78,10 @@ const samplePosts: Post[] = [
 ];
 
 const sampleUsers: User[] = [
-  { name: 'EDO Official', username: 'edoofficial', password: '', bio: 'Official EDO Pack account', profilePic: '', posts: ['p1', 'p2', 'p6'], points: 0, followers: 15420, following: [] },
-  { name: 'Snack Reviewer', username: 'snackreviewer', password: '', bio: 'Reviewing snacks daily', profilePic: '', posts: ['p3'], points: 0, followers: 892, following: [] },
-  { name: 'Office Snacker', username: 'officesnacker', password: '', bio: '', profilePic: '', posts: ['p4'], points: 0, followers: 234, following: [] },
-  { name: 'Food Vlogger', username: 'foodvlogger', password: '', bio: '', profilePic: '', posts: ['p5'], points: 0, followers: 5678, following: [] },
+  { name: 'EDO Official', username: 'edoofficial', password: '', bio: 'Official EDO Pack account', profilePic: '', posts: ['p1', 'p2', 'p6'], points: 0, followers: 15420, following: [], coupons: [] },
+  { name: 'Snack Reviewer', username: 'snackreviewer', password: '', bio: 'Reviewing snacks daily', profilePic: '', posts: ['p3'], points: 0, followers: 892, following: [], coupons: [] },
+  { name: 'Office Snacker', username: 'officesnacker', password: '', bio: '', profilePic: '', posts: ['p4'], points: 0, followers: 234, following: [], coupons: [] },
+  { name: 'Food Vlogger', username: 'foodvlogger', password: '', bio: '', profilePic: '', posts: ['p5'], points: 0, followers: 5678, following: [], coupons: [] },
 ];
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -117,7 +120,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (db.users.find(u => u.username === username)) return false;
     const newUser: User = {
       name, username, password, bio: '', profilePic: '',
-      posts: [], points: 0, followers: 0, following: [],
+      posts: [], points: 0, followers: 0, following: [], coupons: [],
     };
     setDB(prev => ({
       ...prev,
@@ -181,7 +184,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   };
 
   const followUser = (username: string) => {
-    if (!currentUser) return;
+    if (!currentUser || currentUser.following.includes(username)) return;
     setDB(prev => ({
       ...prev,
       users: prev.users.map(u => {
@@ -190,6 +193,26 @@ export function DataProvider({ children }: { children: ReactNode }) {
         return u;
       }),
     }));
+  };
+
+  const isFollowing = (username: string) => {
+    return currentUser?.following.includes(username) || false;
+  };
+
+  const redeemCoupon = (type: string, cost: number, amount: number): boolean => {
+    if (!currentUser || currentUser.points < cost) return false;
+    setDB(prev => ({
+      ...prev,
+      users: prev.users.map(u => {
+        if (u.username !== prev.currentUser) return u;
+        const coupons = [...(u.coupons || [])];
+        const existing = coupons.find(c => c.type === type);
+        if (existing) existing.count += 1;
+        else coupons.push({ type, amount, count: 1 });
+        return { ...u, points: u.points - cost, coupons };
+      }),
+    }));
+    return true;
   };
 
   const addPoints = (amount: number) => {
@@ -217,7 +240,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   return (
     <DataContext.Provider value={{
       db, currentUser, signup, login, logout, addPost, likePost, sharePost,
-      commentOnPost, likeComment, followUser, addPoints, updateProfile, getPost, getUserPosts, getAllPosts,
+      commentOnPost, likeComment, followUser, isFollowing, addPoints, redeemCoupon, updateProfile, getPost, getUserPosts, getAllPosts,
     }}>
       {children}
     </DataContext.Provider>

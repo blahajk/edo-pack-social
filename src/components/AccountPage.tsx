@@ -2,18 +2,35 @@ import { useState } from 'react';
 import { useData } from '@/lib/data';
 import { Menu, X } from 'lucide-react';
 
-const AccountPage = () => {
-  const { currentUser, getUserPosts, updateProfile, logout } = useData();
+interface AccountPageProps {
+  onViewPost?: (postId: string) => void;
+}
+
+const COUPON_OPTIONS = [
+  { type: '$5 EDO Voucher', cost: 500, amount: 5 },
+  { type: '$10 EDO Voucher', cost: 1000, amount: 10 },
+  { type: '$25 EDO Voucher', cost: 2500, amount: 25 },
+];
+
+const AccountPage = ({ onViewPost }: AccountPageProps) => {
+  const { currentUser, getUserPosts, updateProfile, redeemCoupon, logout } = useData();
   const [showSidebar, setShowSidebar] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showRedeem, setShowRedeem] = useState(false);
   const [editName, setEditName] = useState(currentUser?.name || '');
   const [editUsername, setEditUsername] = useState(currentUser?.username || '');
   const [editBio, setEditBio] = useState(currentUser?.bio || '');
+  const [toast, setToast] = useState('');
 
   if (!currentUser) return null;
 
   const posts = getUserPosts(currentUser.username);
+  const coupons = currentUser.coupons || [];
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 1500);
+  };
 
   const handleSaveProfile = () => {
     updateProfile({ name: editName, username: editUsername, bio: editBio });
@@ -21,8 +38,26 @@ const AccountPage = () => {
     setShowSidebar(false);
   };
 
+  const handleRedeem = (option: typeof COUPON_OPTIONS[0]) => {
+    if (redeemCoupon(option.type, option.cost, option.amount)) {
+      showToast(`Redeemed ${option.type}!`);
+    }
+  };
+
+  const getCouponCount = (type: string) => {
+    return coupons.find(c => c.type === type)?.count || 0;
+  };
+
   return (
     <div className="animate-fade-in pb-24">
+      {toast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[2000] px-4 py-1.5 bg-yellow-400 text-black font-bold text-sm"
+          style={{ animation: 'toast-in 0.3s ease-out' }}
+        >
+          {toast}
+        </div>
+      )}
+
       <div className="p-5">
         {/* Top */}
         <div className="flex justify-between items-start mb-4">
@@ -60,9 +95,13 @@ const AccountPage = () => {
         {posts.length > 0 ? (
           <div className="grid grid-cols-3 gap-0.5">
             {posts.map(post => (
-              <div key={post.id} className="aspect-square glass-card flex items-center justify-center">
+              <button
+                key={post.id}
+                onClick={() => onViewPost?.(post.id)}
+                className="aspect-square glass-card flex items-center justify-center hover:opacity-80 edo-transition cursor-pointer"
+              >
                 <span className="text-xs text-muted-foreground text-center px-1">{post.caption.slice(0, 30)}</span>
-              </div>
+              </button>
             ))}
           </div>
         ) : (
@@ -152,42 +191,27 @@ const AccountPage = () => {
               <p className="text-muted-foreground mt-2">Points Available</p>
             </div>
             <div className="space-y-3">
-              <div className="glass-card p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-foreground text-sm">$5 EDO Voucher</p>
-                  <p className="text-xs text-muted-foreground">500 points</p>
-                </div>
-                <button
-                  disabled={currentUser.points < 500}
-                  className="px-3 py-1 bg-foreground text-background text-xs font-bold disabled:opacity-30"
-                >
-                  Redeem
-                </button>
-              </div>
-              <div className="glass-card p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-foreground text-sm">$10 EDO Voucher</p>
-                  <p className="text-xs text-muted-foreground">1000 points</p>
-                </div>
-                <button
-                  disabled={currentUser.points < 1000}
-                  className="px-3 py-1 bg-foreground text-background text-xs font-bold disabled:opacity-30"
-                >
-                  Redeem
-                </button>
-              </div>
-              <div className="glass-card p-4 flex justify-between items-center">
-                <div>
-                  <p className="font-bold text-foreground text-sm">$25 EDO Voucher</p>
-                  <p className="text-xs text-muted-foreground">2500 points</p>
-                </div>
-                <button
-                  disabled={currentUser.points < 2500}
-                  className="px-3 py-1 bg-foreground text-background text-xs font-bold disabled:opacity-30"
-                >
-                  Redeem
-                </button>
-              </div>
+              {COUPON_OPTIONS.map(option => {
+                const owned = getCouponCount(option.type);
+                return (
+                  <div key={option.type} className="glass-card p-4 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-foreground text-sm">{option.type}</p>
+                      <p className="text-xs text-muted-foreground">{option.cost} points</p>
+                      {owned > 0 && (
+                        <p className="text-xs text-accent mt-0.5">You have: {owned}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleRedeem(option)}
+                      disabled={currentUser.points < option.cost}
+                      className="px-3 py-1 bg-foreground text-background text-xs font-bold disabled:opacity-30"
+                    >
+                      Redeem
+                    </button>
+                  </div>
+                );
+              })}
             </div>
             <button onClick={() => setShowRedeem(false)}
               className="w-full py-2 mt-4 border border-border text-foreground font-bold uppercase tracking-widest edo-transition hover:opacity-70">
