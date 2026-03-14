@@ -120,7 +120,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     if (db.users.find(u => u.username === username)) return false;
     const newUser: User = {
       name, username, password, bio: '', profilePic: '',
-      posts: [], points: 0, followers: 0, following: [],
+      posts: [], points: 0, followers: 0, following: [], coupons: [],
     };
     setDB(prev => ({
       ...prev,
