@@ -43,7 +43,7 @@ const AppContent = () => {
       {view === 'video' && <VideoPage hashtag={videoHashtag} postId={videoPostId} />}
       {view === 'add' && <AddPostPage onPosted={() => setView('home')} />}
       {view === 'account' && <AccountPage onViewPost={(id) => { setVideoPostId(id); setVideoHashtag(undefined); setView('video'); }} />}
-      <FooterNav active={view} onNavigate={(v) => { setView(v); if (v !== 'video') setVideoHashtag(undefined); }} />
+      <FooterNav active={view} onNavigate={(v) => { setView(v); if (v !== 'video') { setVideoHashtag(undefined); setVideoPostId(undefined); } }} />
     </div>
   );
 };
