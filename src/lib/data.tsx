@@ -52,7 +52,9 @@ interface DataContextType {
   commentOnPost: (postId: string, text: string) => void;
   likeComment: (postId: string, commentId: string) => void;
   followUser: (username: string) => void;
+  isFollowing: (username: string) => boolean;
   addPoints: (amount: number) => void;
+  redeemCoupon: (type: string, cost: number, amount: number) => boolean;
   updateProfile: (updates: Partial<Pick<User, 'name' | 'username' | 'bio' | 'profilePic'>>) => void;
   getPost: (postId: string) => Post | undefined;
   getUserPosts: (username: string) => Post[];
