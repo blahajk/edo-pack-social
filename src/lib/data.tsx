@@ -31,6 +31,7 @@ export interface User {
   points: number;
   followers: number;
   following: string[];
+  coupons: { type: string; amount: number; count: number }[];
 }
 
 interface EdoDB {
