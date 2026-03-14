@@ -240,7 +240,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   return (
     <DataContext.Provider value={{
       db, currentUser, signup, login, logout, addPost, likePost, sharePost,
-      commentOnPost, likeComment, followUser, addPoints, updateProfile, getPost, getUserPosts, getAllPosts,
+      commentOnPost, likeComment, followUser, isFollowing, addPoints, redeemCoupon, updateProfile, getPost, getUserPosts, getAllPosts,
     }}>
       {children}
     </DataContext.Provider>
